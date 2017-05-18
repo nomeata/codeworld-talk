@@ -109,14 +109,22 @@ smiley x =
 
 groupSlide :: Interaction
 groupSlide = animate $ \x ->
-    let x1 = (1 - x/2) `max` 0
-        x2 = ((x - 2) `max` 0) `min` 1 in
+    let x1 = ((1 - (x-1)/2)) `max` 0 `min` 1
+        x2 = ((x - 4) `max` 0) `min` 1 in
     mconcat $
-        [ translated 0 4 $ scaled 0.25 0.25 $ smiley (1-x2) ] ++
+        [ translated 0 7.8 $ scaled 0.2 0.2 $ smiley (1-x2) ] ++
+        [ translated 0 3 $ scaled 1 1 $ computer  | x > 0 ] ++
         (if x > 0 then
-        [ translated (-4 - (x1 * 10)) (-2)  $ scaled 0.25 0.25 $ smiley 0
-        , translated (4 + (x1 * 10)) (-2)   $ scaled 0.25 0.25 $ smiley 0
-        ] else [])
+        [ translated (-7 - (x1 * 10)) (-5)  $
+            scaled 0.2 0.2 (smiley 0) <> translated 4 (-1) computer
+        , translated (7 + (x1 * 10)) (-5)   $
+            scaled 0.2 0.2 (smiley 0) <> translated (-4) (-1) computer
+        ] ++
+        [  path [ (0.2, 1.5), (2,-3) ]
+        <>  path [ (-0.2,1.5),(-2,-3) ]
+        <>  path [ (1.3,-5),  (-1.3,-5) ]
+        | x > 3.5 ]
+        else [])
 
 interactionsSlide1 :: Interaction
 interactionsSlide1 = static $ codeListing

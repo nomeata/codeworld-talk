@@ -299,16 +299,15 @@ howSlide = static $ codeListing
 
 moreSlide :: Interaction
 moreSlide = static $ vcat
-    [ titleText "In the (upcoming) paper:"
+    [ titleText "In the paper:"
     , blank
     , blank
     , slideText "Handle time"
-    , slideText "Cacheing unchanging history"
+    , slideText "Caching unchanging history"
     , slideText "Better data structures"
     , blank
     , slideText "Ensuring equal code"
     , slideText "Trouble with sin() & cos()"
-    , slideText "Better data structures"
     , slideText "State interpolation"
     ]
 
@@ -323,6 +322,7 @@ playSlide = static $ vcat
     , slideText "https://is.gd/pongcode"
     , blank
     , blank
+    , scaled 0.9 0.9 $ slideText "https://github.com/nomeata/codeworld-talk"
     , blank
     ]
 

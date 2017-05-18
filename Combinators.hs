@@ -13,11 +13,13 @@ import Unsafe.Coerce
 drawDelayed :: Int -> Double -> Double -> [(Double, Double, Event)] -> Picture -> Picture
 drawDelayed me now delay xs p
     = translated 8 9.2 (text (showt (round (delay*1000)::Int) <> "ms"))
+    {-
     <> flip' (mconcat [ translated (10 - x*20) (-8.5) triangle
                       | (end, start, _) <- xs
                       , end > start
                       , let x = (now-start)/(end-start)
                       ])
+    -}
     <> p
   where
     triangle = colored red $ solidPolygon [ (0,0), (1,0.5), (1,-0.5) ]

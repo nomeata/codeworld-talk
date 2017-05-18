@@ -264,7 +264,10 @@ keyPicture c = scaled 6 6 $ mconcat
   ]
 
 quote :: Interaction
-quote = static $ vcat
+quote = static $
+  translated 3.3 4.5 (rotated 0.1 (
+    colored white (scaled  0.75 0.75 (slideText "Code of Conduct")) <> solidRectangle 6.5 1.2))
+  <> vcat
   [ slideText "“One of the most vile bugs in"
   , slideText "the universe is the desync bug."
   , slideText "They’re mean sons of bitches."

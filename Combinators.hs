@@ -134,7 +134,9 @@ slideshow slides = Interaction init step handle draw
               dist = fromIntegral t - x
 
     next (KeyPress "PageDown") n = Just $ (n + 1) `min` (length slides -1)
+    next (KeyPress "Right")    n = Just $ (n + 1) `min` (length slides -1)
     next (KeyPress "PageUp")   n = Just $ (n - 1) `max` 0
+    next (KeyPress "Left")     n = Just $ (n - 1) `max` 0
     next (KeyPress "End")      n = Just $ length slides - 1
     next (KeyPress "Home")     n = Just  0
     next _ _ = Nothing

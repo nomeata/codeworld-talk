@@ -16,9 +16,9 @@ hack that is called [hs-all-in-one] I combine and upload the code:
     ./upload.sh https://code.world/ haskell combined.hs
 
 You can view the result at
-<https://code.world/run.html?mode=haskell&dhash=DE03Niu2kEw4qu8qwkhsV8Q>.
+<https://code.world/run.html?mode=haskell&dhash=DL0SsMDfRFvBC8Bagse7l_A>.
 
-Use `PageUp` and `PageDown` to navigate slides, `P` to unpause paused
+Use `PageUp` or `→` and `PageDown` or `←` to navigate slides, `P` to unpause paused
 animations, `Esc` to reset them. The Tic-tac-toe games works by clicking; the
 Pong game with `W`/`S` resp. `↑`/`↓`.
 

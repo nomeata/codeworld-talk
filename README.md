@@ -5,6 +5,9 @@ This repository contains the program that constitutes my “slides“ for my tal
 about lock step simulation, as implemented in [CodeWorld]. This talk was first
 held at [Compose Conference 2017], in May 2017.
 
+For more details, see the [extended version of the experience
+report](https://arxiv.org/abs/1705.09704) on that topic.
+
 The slides are actually implemented in CodeWorld itself, as one large
 `interactionOf`. I wrote the code locally, and in several modules. Using the
 hack that is called [hs-all-in-one] I combine and upload the code:

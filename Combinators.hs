@@ -8,6 +8,7 @@ import Data.List
 import Abstractions
 import Prediction
 import qualified PredictionLargeStep as PLS
+import qualified PredictionInterpolation as PI
 import Unsafe.Coerce
 
 drawDelayed :: Int -> Double -> Double -> [(Double, Double, Event)] -> Picture -> Picture
@@ -77,6 +78,37 @@ delayEventsPrediction me
     draw (now, delay, xs, s)
         = drawDelayed me now delay xs $ drawPC me (currentState stepPC rate now s)
 
+delayEventsInterpolation :: Int -> PseudoCollaboration -> Interaction
+delayEventsInterpolation me
+    PseudoCollaboration{initPC = initPC, stepPC = stepPC, handlePC = handlePC, drawPC = drawPC, minePC = minePC}
+  = Interaction init step handle draw
+  where
+    other = 1 - me
+    rate = 1 / 16
+    init = (0, 0, [], PI.initFuture 0.4 initPC 2)
+    step d (now, delay, xs, s)
+      = (now + d, delay, postpone, s')
+      where (todo, postpone) = span (\ (when, _, _) -> when < now) xs
+            s' = PI.currentTimePasses stepPC rate (now + d) $
+                 PI.addEvent stepPC rate me    now now Nothing $
+                 PI.addEvent stepPC rate other now (now - delay) Nothing $
+                 foldl' go s $
+                 todo
+            go s'' (_, a, e) =
+                 PI.addEvent stepPC rate other now a (Just (handlePC e)) s''
+
+    handle (KeyPress "=") (now, delay, xs, s) = (now, delay + 0.1, xs, s)
+    handle (KeyPress "Unknown:173") s = handle (KeyPress "-") s
+    handle (KeyPress "-") (now, delay, xs, s) = (now, max 0 (delay - 0.1), xs, s)
+    handle e (now, delay, xs, s)
+        | minePC me    e c = (now, delay, xs, PI.addEvent stepPC rate me now now (Just (handlePC e)) s)
+        | minePC other e c = (now, delay, xs++[(now + delay, now, e)], s)
+        | otherwise        = (now, delay, xs, s)
+      where c = PI.currentState stepPC rate now s
+
+    draw (now, delay, xs, s)
+        = drawDelayed me now delay xs $ drawPC me (PI.currentState stepPC rate now s)
+
 
 delayEventsLargeStepPrediction :: Int -> PseudoCollaboration -> Interaction
 delayEventsLargeStepPrediction me
@@ -134,11 +166,11 @@ slideshow slides = Interaction init step handle draw
               dist = fromIntegral t - x
 
     next (KeyPress "PageDown") n = Just $ (n + 1) `min` (length slides -1)
-    next (KeyPress "Right")    n = Just $ (n + 1) `min` (length slides -1)
+--    next (KeyPress "Right")    n = Just $ (n + 1) `min` (length slides -1)
     next (KeyPress "PageUp")   n = Just $ (n - 1) `max` 0
-    next (KeyPress "Left")     n = Just $ (n - 1) `max` 0
-    next (KeyPress "End")      n = Just $ length slides - 1
-    next (KeyPress "Home")     n = Just  0
+--    next (KeyPress "Left")     n = Just $ (n - 1) `max` 0
+    next (KeyPress "End")      _ = Just $ length slides - 1
+    next (KeyPress "Home")     _ = Just  0
     next _ _ = Nothing
 
     handle e (Showing n, ss)     | Just n' <- next e n , n' /= n

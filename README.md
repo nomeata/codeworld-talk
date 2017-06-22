@@ -14,14 +14,15 @@ hack that is called [hs-all-in-one] I combine and upload the code:
 
     hs-all-in-one Abstractions.hs Combinators.hs Main.hs Pong.hs \
                   PongState.hs Prediction.hs PredictionLargeStep.hs \
-		  TicTacToe.hs  Data/MultiMap.hs Walking.hs \
+                  PredictionInterpolation.hs TicTacToe.hs \
+                  Data/MultiMap.hs Walking.hs \
 		  > combined.hs
     ./upload.sh https://code.world/ haskell combined.hs
 
 You can view the result at
 <https://code.world/run.html?mode=haskell&dhash=DL0SsMDfRFvBC8Bagse7l_A>.
 
-Use `PageUp` or `→` and `PageDown` or `←` to navigate slides, `P` to unpause paused
+Use `PageUp` and `PageDown` to navigate slides, `P` to unpause paused
 animations, `Esc` to reset them. The Tic-tac-toe games works by clicking; the
 Pong game with `W`/`S` resp. `↑`/`↓`.
 

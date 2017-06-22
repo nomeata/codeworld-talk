@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 import Pong
 import TicTacToe
+import Walking
 import qualified PongState
 import Abstractions
 import CodeWorld
@@ -12,7 +13,6 @@ main :: IO ()
 main = do
     gen1 <- newStdGen
     gen2 <- newStdGen
-    -- runInteraction (pong gen1)
     runInteraction $ slideshow $
         [ title
         , static codeWorldLogo
@@ -46,6 +46,11 @@ main = do
             delayEventsPrediction 0 (pongMB gen1) `overlay` delayEventsPrediction 1 (pongMB gen2)
         , static $ titleText "How?"
         , howSlide
+        , static $ titleText "Interpolation"
+        , restartable $ pausable $
+            delayEventsPrediction 0 walkingMB `overlay` delayEventsInterpolation 1 walkingMB
+        , restartable $ pausable $
+            delayEventsPrediction 0 (pongMB gen1) `overlay` delayEventsInterpolation 1 (pongMB gen1)
         , moreSlide
         , playSlide
         ]
@@ -319,7 +324,6 @@ moreSlide = static $ vcat
     , blank
     , slideText "Ensuring equal code"
     , slideText "Trouble with sin() & cos()"
-    , slideText "State interpolation"
     ]
 
 

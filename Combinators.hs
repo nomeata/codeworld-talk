@@ -11,20 +11,10 @@ import qualified PredictionLargeStep as PLS
 import qualified PredictionInterpolation as PI
 import Unsafe.Coerce
 
-drawDelayed :: Int -> Double -> Double -> [(Double, Double, Event)] -> Picture -> Picture
-drawDelayed me now delay xs p
+drawDelayed :: Int -> Double -> Double -> Picture -> Picture
+drawDelayed me now delay p
     = translated 8 9.2 (text (showt (round (delay*1000)::Int) <> "ms"))
-    {-
-    <> flip' (mconcat [ translated (10 - x*20) (-8.5) triangle
-                      | (end, start, _) <- xs
-                      , end > start
-                      , let x = (now-start)/(end-start)
-                      ])
-    -}
     <> p
-  where
-    triangle = colored red $ solidPolygon [ (0,0), (1,0.5), (1,-0.5) ]
-    flip' = if me == 0 then id else scaled (-1) 1
 
 delayEvents :: Int -> PseudoCollaboration -> Interaction
 delayEvents me (PseudoCollaboration initPC stepPC minePC handlePC drawPC)
@@ -44,8 +34,8 @@ delayEvents me (PseudoCollaboration initPC stepPC minePC handlePC drawPC)
       | minePC me    e s = (now, delay, xs, handlePC e s)
       | minePC other e s = (now, delay, xs ++ [(now + delay, now, e)], s)
       | otherwise     = (now, delay, xs, s)
-    draw (now, delay, xs, s)
-        = drawDelayed me now delay xs $ drawPC me s
+    draw (now, delay, _xs, s)
+        = drawDelayed me now delay $ drawPC me s
 
 delayEventsPrediction :: Int -> PseudoCollaboration -> Interaction
 delayEventsPrediction me
@@ -54,29 +44,31 @@ delayEventsPrediction me
   where
     other = 1 - me
     rate = 1 / 16
-    init
-      = (0, 0, [], initFuture initPC 2)
-    step d (now, delay, xs, s)
-      = (now + d, delay, postpone, s')
-      where (todo, postpone) = span (\ (when, _, _) -> when < now) xs
-            s' = currentTimePasses stepPC rate (now + d) $
-                 addEvent stepPC rate me    now Nothing $
-                 addEvent stepPC rate other (now - delay) Nothing $
-                 foldl' go s $
-                 todo
-              where go s'' (_, a, e) = addEvent stepPC rate other a (Just (handlePC e)) s''
+    init = (0, 0, 0, [], initFuture initPC 2)
+    step d (now, delay, actual_delay, xs, s) = (now', delay, actual_delay', postpone, s')
+      where (todo, postpone) = partition (\ (when, _, _) -> when < now') xs
+            now' = now + d
+            s' = currentTimePasses stepPC rate now' $
+                 addEvent          stepPC rate me    now'           Nothing $
+                 -- Too tricky to send pings from the other player
+                 -- addEvent          stepPC rate other (now' - delay) Nothing $
+                 foldl' go s todo
+              where go s'' (_, a, e) = addEvent stepPC rate other a e s''
+            actual_delay' | actual_delay < delay = min (actual_delay + 0.9*d) delay
+                          | actual_delay > delay = max (actual_delay - 0.9*d) delay
+                          | otherwise = actual_delay
 
-    handle (KeyPress "=") (now, delay, xs, s) = (now, delay + 0.1, xs, s)
+    handle (KeyPress "=") (now, delay, actual_delay, xs, s) = (now, delay + 0.1, actual_delay, xs, s)
     handle (KeyPress "Unknown:173") s = handle (KeyPress "-") s
-    handle (KeyPress "-") (now, delay, xs, s) = (now, max 0 (delay - 0.1), xs, s)
-    handle e (now, delay, xs, s)
-        | minePC me    e c = (now, delay, xs, addEvent stepPC rate me now (Just (handlePC e)) s)
-        | minePC other e c = (now, delay, xs++[(now + delay, now, e)], s)
-        | otherwise        = (now, delay, xs, s)
+    handle (KeyPress "-") (now, delay, actual_delay, xs, s) = (now, max 0 (delay - 0.1), actual_delay, xs, s)
+    handle e (now, delay, actual_delay, xs, s)
+        | minePC me    e c = (now, delay, actual_delay, xs, addEvent stepPC rate me now (Just (handlePC e)) s)
+        | minePC other e c = (now, delay, actual_delay, xs ++ [(now + actual_delay, now, Just (handlePC e))], s)
+        | otherwise        = (now, delay, actual_delay, xs, s)
       where c = currentState stepPC rate now s
 
-    draw (now, delay, xs, s)
-        = drawDelayed me now delay xs $ drawPC me (currentState stepPC rate now s)
+    draw (now, _, actual_delay, _, s)
+        = drawDelayed me now actual_delay $ drawPC me (currentState stepPC rate now s)
 
 delayEventsInterpolation :: Int -> PseudoCollaboration -> Interaction
 delayEventsInterpolation me
@@ -85,29 +77,31 @@ delayEventsInterpolation me
   where
     other = 1 - me
     rate = 1 / 16
-    init = (0, 0, [], PI.initFuture 0.4 initPC 2)
-    step d (now, delay, xs, s)
-      = (now + d, delay, postpone, s')
-      where (todo, postpone) = span (\ (when, _, _) -> when < now) xs
-            s' = PI.currentTimePasses stepPC rate (now + d) $
-                 PI.addEvent stepPC rate me    now now Nothing $
-                 PI.addEvent stepPC rate other now (now - delay) Nothing $
-                 foldl' go s $
-                 todo
-            go s'' (_, a, e) =
-                 PI.addEvent stepPC rate other now a (Just (handlePC e)) s''
+    init = (0, 0, 0, [], PI.initFuture 0.4 initPC 2)
+    step d (now, delay, actual_delay, xs, s) = (now', delay, actual_delay', postpone, s')
+      where (todo, postpone) = partition (\ (when, _, _) -> when < now') xs
+            now' = now + d
+            s' = PI.currentTimePasses stepPC rate now' $
+                 PI.addEvent          stepPC rate me    now' now'       Nothing $
+                 -- Too tricky to send pings from the other player
+                 -- addEvent          stepPC rate other (now' - delay) Nothing $
+                 foldl' go s todo
+              where go s'' (_, a, e) = PI.addEvent stepPC rate other now' a e s''
+            actual_delay' | actual_delay < delay = min (actual_delay + 0.9*d) delay
+                          | actual_delay > delay = max (actual_delay - 0.9*d) delay
+                          | otherwise = actual_delay
 
-    handle (KeyPress "=") (now, delay, xs, s) = (now, delay + 0.1, xs, s)
+    handle (KeyPress "=") (now, delay, actual_delay, xs, s) = (now, delay + 0.1, actual_delay, xs, s)
     handle (KeyPress "Unknown:173") s = handle (KeyPress "-") s
-    handle (KeyPress "-") (now, delay, xs, s) = (now, max 0 (delay - 0.1), xs, s)
-    handle e (now, delay, xs, s)
-        | minePC me    e c = (now, delay, xs, PI.addEvent stepPC rate me now now (Just (handlePC e)) s)
-        | minePC other e c = (now, delay, xs++[(now + delay, now, e)], s)
-        | otherwise        = (now, delay, xs, s)
+    handle (KeyPress "-") (now, delay, actual_delay, xs, s) = (now, max 0 (delay - 0.1), actual_delay, xs, s)
+    handle e (now, delay, actual_delay, xs, s)
+        | minePC me    e c = (now, delay, actual_delay, xs, PI.addEvent stepPC rate me now now (Just (handlePC e)) s)
+        | minePC other e c = (now, delay, actual_delay, xs ++ [(now + actual_delay, now, Just (handlePC e))], s)
+        | otherwise        = (now, delay, actual_delay, xs, s)
       where c = PI.currentState stepPC rate now s
 
-    draw (now, delay, xs, s)
-        = drawDelayed me now delay xs $ drawPC me (PI.currentState stepPC rate now s)
+    draw (now, _, actual_delay, _, s)
+        = drawDelayed me now actual_delay $ drawPC me (PI.currentState stepPC rate now s)
 
 
 delayEventsLargeStepPrediction :: Int -> PseudoCollaboration -> Interaction
@@ -137,8 +131,8 @@ delayEventsLargeStepPrediction me
         | otherwise        = (now, delay, xs, s)
       where c = PLS.currentState stepPC now s
 
-    draw (now, delay, xs, s)
-        = drawDelayed me now delay xs $ drawPC me (PLS.currentState stepPC now s)
+    draw (now, delay, _, s)
+        = drawDelayed me now delay $ drawPC me (PLS.currentState stepPC now s)
 showt :: Show a => a -> Text
 showt x = pack (show x)
 

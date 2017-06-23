@@ -86,8 +86,10 @@ timePassesBigStep step rate target (now, s)
 -- Move state forward in fixed animation rate steps, and get
 -- the timestamp as close to the given target as possible, and then do a final small step
 timePasses :: StepFun s -> AnimationRate -> Timestamp -> TState s -> TState s
-timePasses step rate target
-    = stepTo step target . timePassesBigStep step rate target
+timePasses step rate target (now, s)
+    | False, target < now = error "Cannot go back in time"
+    | otherwise =    stepTo step target $
+                     timePassesBigStep step rate target (now, s)
 
 stepBy :: StepFun s -> Double -> TState s -> TState s
 stepBy step diff (now,s)
@@ -126,6 +128,8 @@ currentTimePasses step rate target
 addEvent :: StepFun s -> AnimationRate ->
     PlayerId -> Timestamp -> Maybe (Event s) ->
     Future s -> Future s
+addEvent _ _ player now _ f | False, now < lastEvents f IM.! player
+    = error "Events coming in out of order"
   -- A future event.
 addEvent step rate player now mbEvent f | now > lastQuery f
     = recordActivity step rate player now $
@@ -156,7 +160,7 @@ advanceCommitted step rate f
     (eventsToCommit, uncommited') = M.spanAntitone (canCommit . fst) (pending f)
 
     committed' =
-        timePassesBigStep step rate (lastQuery f) $
+        -- timePassesBigStep step rate commitTime' $
         handleNextEvents step rate eventsToCommit $
         committed f
 

@@ -267,7 +267,7 @@ keyPicture c = scaled 6 6 $ mconcat
   , polygon [ (-1,0), (-1.2,-0.6), (1.2, -0.6), (1,0)]
   , polygon [ (-1.2,-0.6), (-1,0.4),(-0.8, 1) ]
   , polygon [ (1.2,-0.6),  (1,0.4),(0.8, 1) ]
-  , translated 0 0.4 $ dilated 1 0.6 $ text c
+  , translated 0 0.4 $ dilated 0.6 $ text c
   , colored white $ mconcat $
       [ solidPolygon [ (-1,0), (1,0), (0.8, 1), (-0.8, 1), (-1,0) ]
       , solidPolygon [ (-1,0), (-1.2,-0.6), (1.2, -0.6), (1,0), (-1,0) ]

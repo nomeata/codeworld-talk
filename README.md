@@ -23,9 +23,15 @@ hack that is called [hs-all-in-one] I combine and upload the code:
 You can view the result at
 <https://code.world/run.html?mode=haskell&dhash=DvstITCj9Adwvf11P83ez8w>.
 
-Use `PageUp` and `PageDown` to navigate slides, `P` to unpause paused
-animations, `Esc` to reset them. The Tic-tac-toe games works by clicking; the
-Pong game with `W`/`S` resp. `↑`/`↓`.
+Usage:
+ * Use `PageUp` and `PageDown` to navigate slides.
+ * `P` to unpause paused animations (some start paused, with no visible indication)
+ * `Esc` to reset animations
+ * The Tic-tac-toe games works by clicking.
+ * The Pong game with `W`/`S` resp. `↑`/`↓`.
+ * The walking game with `W`/`A`/`D` resp. `↑`/`←`/`→`.
+ * The slides where two instances are running in parallel support `O` to show
+   them next to each other, and `=` and `-` to modify the delay.
 
 Or simply [play Pong].
 

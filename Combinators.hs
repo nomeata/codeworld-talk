@@ -4,6 +4,7 @@ module Combinators where
 import CodeWorld
 import Data.Text (pack, Text)
 import Data.List
+import Data.Function (on)
 
 import Abstractions
 import Prediction
@@ -242,6 +243,9 @@ genPausable paused (Interaction init step handle draw)
 
 overlay :: Interaction -> Interaction -> Interaction
 overlay = tweenOn "O" overlayTween coord
+
+poverlay :: Interaction -> Interaction -> Interaction
+poverlay = overlay `on` pausable
 
 coord :: Double -> Point -> Point
 coord d (x,y) | d > 0.5, y > 0 = (2 * x + 5, 2*y - 10)

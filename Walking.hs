@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-module Walking (walking, walkingMB) where
+module Walking (walkingMB) where
 
 import CodeWorld
 
@@ -23,11 +23,12 @@ playerR = 2
 playerSpeed = 3
 playerRot = 1
 
-drawPlayer color (PlayerState{..}) =
+drawPlayer active color (PlayerState{..}) =
     uncurry translated pos $
     rotated dir $
     scaled playerR playerR $
-    mconcat [ translated 0.4 0.5 eye
+    mconcat [ if active then thickCircle 0.06 (1+0.025) else blank
+            , translated 0.4 0.5 eye
             , translated (-0.4) 0.5 eye
             , colored color $ solidCircle 1
             ]
@@ -35,9 +36,9 @@ drawPlayer color (PlayerState{..}) =
                       , colored white (solidCircle 0.25)
                       ]
 
-draw (State{..}) = mconcat
-    [ drawPlayer green playerA
-    , drawPlayer blue  playerB
+draw num (State{..}) = mconcat
+    [ drawPlayer (num == 0) green playerA
+    , drawPlayer (num == 1) blue  playerB
     ]
 
 (x,y) `plus` (dx,dy) = (x+dx, y+dy)
@@ -89,10 +90,7 @@ init = State
     (PlayerState (-3,-5) 0 0 0)
     (PlayerState ( 3,-5) 0 0 0)
 
-walking :: Interaction
-walking = Interaction init step handle draw
-
 walkingMB :: PseudoCollaboration
-walkingMB = PseudoCollaboration init step mine handle (const draw)
+walkingMB = PseudoCollaboration init step mine handle draw
 
 

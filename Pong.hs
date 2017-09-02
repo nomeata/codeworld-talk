@@ -38,11 +38,17 @@ maxSpeed = 5
 paddleAt x y = translated x y $
     solidRectangle paddleWidth paddleLength
 
+paddleOutlineAt x y = translated x y $
+    thickRectangle 0.06 (paddleWidth + 0.05) (paddleLength + 0.05)
+
 ballAt (x, y) = translated x y $
     solidCircle ballRadius
 
-drawPong PongState{..} = mconcat
-    [ colored green $ paddleAt (-maxX) paddleA
+drawPong mbP PongState{..} = mconcat
+    [ case mbP of Nothing -> blank
+                  Just 0 -> paddleOutlineAt (-maxX) paddleA
+                  Just _ -> paddleOutlineAt maxX    paddleB
+    , colored green $ paddleAt (-maxX) paddleA
     , colored blue  $ paddleAt maxX paddleB
     , ballAt ballPos
     , colored green $ translated (-9.5) (-9.5) (text (showt scoreA))
@@ -100,7 +106,7 @@ reactSide ps@PongState{..}
     (bx,by) = ballPos
     (dx,dy) = ballSpeed
     border = maxX - paddleWidth/2 - ballRadius
-    (jitter, gen') = randomR (-dirChange * abs dx, dirChange * abs dx) rndGen
+    (jitter, gen') = (0,rndGen) -- randomR (-dirChange * abs dx, dirChange * abs dx) rndGen
     newSpeed = (abs dx + speedIncrease) `min` maxSpeed
 
 handlePong (KeyPress   "W")    ps = ps { paddleASpeed = paddleSpeed }
@@ -135,9 +141,9 @@ restart d ps = ps { ballPos = pos, ballSpeed = (d', dx), rndGen = gen'' }
 
 
 pong :: StdGen -> Interaction
-pong gen = Interaction (initPong gen) stepPong handlePong drawPong
+pong gen = Interaction (initPong gen) stepPong handlePong (drawPong Nothing)
 
 pongMB :: StdGen -> PseudoCollaboration
-pongMB gen = PseudoCollaboration (initPong gen) stepPong minePong handlePong (const drawPong)
+pongMB gen = PseudoCollaboration (initPong gen) stepPong minePong handlePong (drawPong . Just)
 
 

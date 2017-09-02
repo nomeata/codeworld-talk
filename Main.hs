@@ -13,18 +13,40 @@ main :: IO ()
 main = do
     gen1 <- newStdGen
     gen2 <- newStdGen
-    runInteraction $ slideshow $
+    runInteraction $ slideshow $ const
         [ title
+        , restartable $ pausable $
+            delayEvents 0 (pongMB gen1) `overlay` delayEvents 1 (pongMB gen1)
+        , restartable $ paused $ transmitSlide3
+        , static $ titleText "Lock-step simulation"
+        , restartable $ paused $ transmitSlide4
+        , restartable $
+            delayEventsPrediction 0 (PongState.pongMB gen1) `poverlay` delayEventsPrediction 1 (PongState.pongMB gen1)
+        , restartable $
+            delayEventsPrediction 0 (pongMB gen1) `poverlay` delayEventsPrediction 1 (pongMB gen2)
+
+        , quote
+        , restartable $
+            delayEventsPrediction 0 (pongMB gen1) `poverlay` delayEventsPrediction 1 (pongMB gen1)
         , static codeWorldLogo
         , drawingsSlide
         , smileyCode
         , restartable $ paused $ smileySlide
+        , interactionsSlide2
+        , collaborationSlide
+        , moreSlide
+        , static $ titleText "Interpolation"
+        , restartable $
+            delayEventsPrediction 0 walkingMB `poverlay` delayEventsInterpolation 1 walkingMB
+        , playSlide
+        ]
+        [ undefined
+        , static codeWorldLogo
+        , restartable $ paused $ smileySlide
         , interactionsSlide1
         , restartable $ ticTacToe
-        , interactionsSlide2
         , restartable $ pausable $ pong gen1
         , restartable $ paused $ groupSlide
-        , collaborationSlide
         , restartable $ paused $ transmitSlide1
         , restartable $ paused $ transmitSlide2
         , restartable $ paused $ transmitSlide3
@@ -51,8 +73,6 @@ main = do
             delayEventsPrediction 0 walkingMB `overlay` delayEventsInterpolation 1 walkingMB
         , restartable $ pausable $
             delayEventsPrediction 0 (pongMB gen1) `overlay` delayEventsInterpolation 1 (pongMB gen1)
-        , moreSlide
-        , playSlide
         ]
 
 -- Slides
@@ -194,9 +214,10 @@ animateTransmit screens1 screens2 msgs d = mconcat $
     , translated 5 (-5) computer
     ]
  where
-    i = floor (3*d / 13)
+    s = 2.5
+    i = floor (s*d / 13)
     i' = if x > 0 then 2*i+1 else 2*i
-    x = ((3*d - 3 - 13*fromIntegral i) `max` (-3)) `min` 10
+    x = ((s*d - 3 - 13*fromIntegral i) `max` (-3)) `min` 10
     x' = if odd i then 10 - x else x
 
     screen1 = screens1 !! min i' (length screens1 - 1)
@@ -319,11 +340,12 @@ moreSlide = static $ vcat
     , blank
     , blank
     , slideText "Handle time"
-    , slideText "Caching unchanging history"
-    , slideText "Better data structures"
-    , blank
+    --, slideText "Caching unchanging history"
+    --, slideText "Better data structures"
+    --, blank
     , slideText "Ensuring equal code"
     , slideText "Trouble with sin() & cos()"
+    , slideText "State interpolation"
     ]
 
 

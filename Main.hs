@@ -194,24 +194,24 @@ transmitSlide2 = animate $ animateTransmit
 
 transmitSlide3 :: Interaction
 transmitSlide3 = animate $ animateTransmit
-        [ tictactoePicture0, tictactoePicture1, tictactoePicture1, tictactoePicture1, tictactoePicture2 ]
-        [ tictactoePicture0, tictactoePicture0, tictactoePicture1, tictactoePicture2, tictactoePicture2 ]
-        [ keyPicture "2", keyPicture "1" ]
+        [ pongPicture 0, pongPicture 1, pongPicture 1, pongPicture 1, pongPicture 2 ]
+        [ pongPicture 0, pongPicture 0, pongPicture 1, pongPicture 2, pongPicture 2 ]
+        [ keyPicture "S", keyPicture "↑" ]
 
 transmitSlide4 :: Interaction
 transmitSlide4 = animate $ animateTransmit
-        [ tictactoePicture0, tictactoePicture1, tictactoePicture1, tictactoePicture1, tictactoePicture2 ]
-        [ tictactoePicture0, tictactoePicture0, tictactoePicture1, tictactoePicture2, tictactoePicture2 ]
-        [ timedKeyPicture "2" 0, timedKeyPicture "1" 0.3 ]
+        [ pongPicture 0, pongPicture 1, pongPicture 1, pongPicture 1, pongPicture 2 ]
+        [ pongPicture 0, pongPicture 0, pongPicture 1, pongPicture 2, pongPicture 2 ]
+        [ timedKeyPicture "S" 0, timedKeyPicture "↑" 0.3 ]
 
 animateTransmit :: [Picture] -> [Picture] -> [Picture] -> Double -> Picture
 animateTransmit screens1 screens2 msgs d = mconcat $
     [ translated ((-5) + x') (5 - x') (fitToScreen msg)
     | i < length msgs && 0 < x' && x' < 10 ] ++
-    [ translated (-5) 5 (fitToScreen screen1)
-    , translated 5 (-5) (fitToScreen screen2)
-    , translated (-5) 5 computer
+    [ translated (-5) 5 computer
     , translated 5 (-5) computer
+    , translated (-5) 5 (fitToScreen screen1)
+    , translated 5 (-5) (fitToScreen screen2)
     ]
  where
     s = 2.5
@@ -237,12 +237,14 @@ computer = scaled 1.5 1.5 $ mconcat $
     [  path [ (-1 - 0.5*x,-0.6 * x), (1 +0.5*x, -0.6 * x)] | x <- [0.2,0.4,0.6,0.8]] ++
     [  path [ (-1 + x * 2,0), (-1.5 + x*3, -0.6)] | x <- [0.2,0.4,0.6,0.8]]
 
-pongPicture :: Picture
-pongPicture =
-    case pong (mkStdGen 0) of
-        Interaction init step handle draw ->
-            let s = step 1 (handle (KeyPress "S") init)
-            in draw s <> colored (gray 0.7) (solidRectangle 20 20)
+pongPicture :: Int -> Picture
+pongPicture n
+    | Interaction init step handle draw <- pong (mkStdGen 0)
+    , let s = foldl (flip id) init $ take n
+            [ handle (KeyRelease "S") . step 1 . handle (KeyPress "S")
+            , handle (KeyRelease "Up") . step 1 . handle (KeyPress "Up")
+            ]
+    = draw s <> colored (gray 0.9) (solidRectangle 20 20)
 
 tictactoePicture0 :: Picture
 tictactoePicture0 =

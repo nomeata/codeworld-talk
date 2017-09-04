@@ -122,7 +122,7 @@ smileyCode = static $ codeListing
     ]
 
 smileySlide :: Interaction
-smileySlide = animate $ \x -> smiley ((x/2) `min` 1)
+smileySlide = animate $ \x -> smiley ((1-x/2) `max` 0)
 
 smiley :: Double -> Picture
 smiley x =

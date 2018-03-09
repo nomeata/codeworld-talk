@@ -23,9 +23,9 @@ hack that is called [hs-all-in-one] I combine and upload the code:
     ./upload.sh https://code.world/ haskell combined.hs
 
 You can view the resulting presentation at
-<https://code.world/run.html?mode=haskell&dhash=DCwU_wEFhmdhjZ-wDI1dtvQ>
+<https://code.world/run.html?mode=haskell&dhash=Di5R-XLJow5sItvbGRJQiNw>
 and the full code at
-<https://code.world/haskell#PzpmgSaSCiJdVrorKAHOv_A>.
+<https://code.world/haskell#PbFD9HveFnExUXSKfXNJPhw>.
 
 Usage:
  * Use `PageUp` and `PageDown` to navigate slides.

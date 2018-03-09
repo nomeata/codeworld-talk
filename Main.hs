@@ -315,7 +315,7 @@ howSlide = static $ codeListing
 
 moreSlide :: Interaction
 moreSlide = static $ vcat
-    [ titleText "In the paper:"
+    [ titleText "What else?"
     , blank
     , blank
     , slideText "Handle time"
